@@ -340,7 +340,7 @@ def query_doc(collection_name: str, query_embedding: list[float], k: int, user: 
     )
 
     if result:
-        log.info('query_doc:result %s %s', result.ids, result.metadatas)
+        log.debug('query_doc:result %s %s', result.ids, result.metadatas)
 
     return result
 
@@ -601,7 +601,7 @@ async def query_doc_with_hybrid_search(
         'metadatas': [metadatas],
     }
 
-    log.info('query_doc_with_hybrid_search:result %s %s', result['metadatas'], result['distances'])
+    log.debug('query_doc_with_hybrid_search:result %s %s', result['metadatas'], result['distances'])
     return result
 
 
