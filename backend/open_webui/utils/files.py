@@ -229,7 +229,20 @@ async def get_image_base64_from_file_id(id: str, user=None) -> Optional[str]:
         if file_path.is_file():
             async with aiofiles.open(file_path, 'rb') as image_file:
                 encoded_string = base64.b64encode(await image_file.read()).decode('utf-8')
-            content_type = mimetypes.guess_type(file_path.name)[0] or (file.meta or {}).get('content_type')
+            # The name can lie: an image saved or renamed with another extension (a JPEG as .heic, a PNG as .jfif)
+            # was sent labelled with its extension, and providers that read the label reject the whole request. The
+            # bytes are the truth; the name and the stored metadata are fallbacks for what Pillow cannot open.
+            content_type = None
+            try:
+                from PIL import Image
+
+                with Image.open(file_path) as image:
+                    content_type = Image.MIME.get(image.format)
+            except Exception:
+                content_type = None
+            content_type = (
+                content_type or mimetypes.guess_type(file_path.name)[0] or (file.meta or {}).get('content_type')
+            )
             if not content_type and ENABLE_IMAGE_CONTENT_TYPE_EXTENSION_FALLBACK:
                 content_type = _IMAGE_MIME_FALLBACK.get(file_path.suffix.lower())
             if not content_type:
